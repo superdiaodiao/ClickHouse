@@ -3279,6 +3279,17 @@ Possible values:
 
 Default value: `0`.
 
+## use_mysql_types_in_show_columns {#use_mysql_types_in_show_columns}
+
+Show the names of MySQL data types corresponding to ClickHouse data types in [SHOW COLUMNS](../../sql-reference/statements/show.md#show_columns) and SELECTs on [system.columns](../system-tables/columns.md).
+
+Possible values:
+
+- 0 - Show names of native ClickHouse data types.
+- 1 - Show names of MySQL data types corresponding to ClickHouse data types.
+
+Default value: `0`.
+
 ## execute_merges_on_single_replica_time_threshold {#execute-merges-on-single-replica-time-threshold}
 
 Enables special logic to perform merges on replicas.
@@ -4659,6 +4670,10 @@ SELECT toFloat64('1.7091'), toFloat64('1.5008753E7') SETTINGS precise_float_pars
 
 Interval (in milliseconds) for sending updates with partial data about the result table to the client (in interactive mode) during query execution. Setting to 0 disables partial results. Only supported for single-threaded GROUP BY without key, ORDER BY, LIMIT and OFFSET.
 
+:::note
+It's an experimental feature. Enable `allow_experimental_partial_result` setting first to use it.
+:::
+
 ## max_rows_in_partial_result
 
 Maximum rows to show in the partial result after every real-time update while the query runs (use partial result limit + OFFSET as a value in case of OFFSET in the query).
@@ -4679,43 +4694,35 @@ The default value is `false`.
 <validate_tcp_client_information>true</validate_tcp_client_information>
 ```
 
-## ignore_access_denied_multidirectory_globs {#ignore_access_denied_multidirectory_globs}
+## print_pretty_type_names {#print_pretty_type_names}
 
-Allows to ignore 'permission denied' errors when using multi-directory `{}` globs for [File](../../sql-reference/table-functions/file.md#globs_in_path) and [HDFS](../../sql-reference/table-functions/hdfs.md) storages.
-This setting is only applicable to multi directory `{}` globs.
+Allows to print deep-nested type names in a pretty way with indents in `DESCRIBE` query and in `toTypeName()` function.
 
-Possible values: `0`, `1`.
-
-Default value: `0`.
-
-### Example
-
-Having the following structure in `user_files`:
-```
-my_directory/
-├── data1
-│   ├── f1.csv
-├── data2
-│   ├── f2.csv
-└── test_root
-```
-where `data1`, `data2` directories are accessible, but one has no rights to read `test_root` directories.
-
-For a query like `SELECT *, _path, _file FROM file('my_directory/{data1/f1,data2/f2}.csv', CSV)` an exception will be thrown:
-`Code: 1001. DB::Exception: std::__1::__fs::filesystem::filesystem_error: filesystem error: in directory_iterator::directory_iterator(...): Permission denied`.  
-It happens because a multi-directory glob requires a recursive search in _all_ available directories under `my_directory`.
-
-If this setting is on, all inaccessible directories will be silently skipped, even if they are explicitly specified inside `{}`.
+Example:
 
 ```sql
-SELECT _path, _file FROM file('my_directory/{data1/f1,data2/f2}.csv', CSV) SETTINGS ignore_access_denied_multidirectory_globs = 0;
-
-Code: 1001. DB::Exception: std::__1::__fs::filesystem::filesystem_error: filesystem error: in directory_iterator::directory_iterator(...): Permission denied
+CREATE TABLE test (a Tuple(b String, c Tuple(d Nullable(UInt64), e Array(UInt32), f Array(Tuple(g String, h Map(String, Array(Tuple(i String, j UInt64))))), k Date), l Nullable(String))) ENGINE=Memory;
+DESCRIBE TABLE test FORMAT TSVRaw SETTINGS print_pretty_type_names=1;
 ```
-```sql
-SELECT _path, _file FROM file('my_directory/{data1/f1,data2/f2}.csv', CSV) SETTINGS ignore_access_denied_multidirectory_globs = 1;
 
-┌─_path───────────────────┬─_file───────┐
-│ <full path to file>     │ <file name> │
-└─────────────────────────┴─────────────┘
+```
+a	Tuple(
+    b String,
+    c Tuple(
+        d Nullable(UInt64),
+        e Array(UInt32),
+        f Array(Tuple(
+            g String,
+            h Map(
+                String,
+                Array(Tuple(
+                    i String,
+                    j UInt64
+                ))
+            )
+        )),
+        k Date
+    ),
+    l Nullable(String)
+)
 ```
