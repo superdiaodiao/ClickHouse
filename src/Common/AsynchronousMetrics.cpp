@@ -2830,7 +2830,6 @@ void AsynchronousMetrics::update(TimePoint update_time, bool force_update)
             {"MYSQL", {"MySQLThreads", "Number of threads in the server of the MySQL compatibility protocol."}},
             {"POSTGRESQL", {"PostgreSQLThreads", "Number of threads in the server of the PostgreSQL compatibility protocol."}},
             {"GRPC", {"GRPCThreads", "Number of threads in the server of the GRPC protocol."}},
-            {"ARROW_FLIGHT", {"ArrowFlightThreads", "Number of threads in the server of the Arrow Flight compatibility protocol."}},
             {"PROMETHEUS", {"PrometheusThreads", "Number of threads in the server of the Prometheus endpoint. Note: prometheus endpoints can be also used via the usual HTTP/HTTPs ports."}},
             {"keeper_server.tcp_port", {"KeeperTCPThreads", "Number of threads in the server of the Keeper TCP protocol (without TLS)."}},
             {"keeper_server.tcp_port_secure", {"KeeperTCPSecureThreads", "Number of threads in the server of the Keeper TCP protocol (with TLS)."}}
@@ -2849,7 +2848,6 @@ void AsynchronousMetrics::update(TimePoint update_time, bool force_update)
             {"MYSQL", {"MySQLRejectedConnections", "Number of rejected connections for the MySQL compatibility protocol."}},
             {"POSTGRESQL", {"PostgreSQLRejectedConnections", "Number of rejected connections for the PostgreSQL compatibility protocol."}},
             {"GRPC", {"GRPCRejectedConnections", "Number of rejected connections for the GRPC protocol."}},
-            {"ARROW_FLIGHT", {"ArrowFlightRejectedConnections", "Number of rejected connections for the Arrow Flight compatibility protocol."}},
             {"PROMETHEUS", {"PrometheusRejectedConnections", "Number of rejected connections for the Prometheus endpoint. Note: prometheus endpoints can be also used via the usual HTTP/HTTPs ports."}},
             {"keeper_server.tcp_port", {"KeeperTCPRejectedConnections", "Number of rejected connections for the Keeper TCP protocol (without TLS)."}},
             {"keeper_server.tcp_port_secure", {"KeeperTCPSecureRejectedConnections", "Number of rejected connections for the Keeper TCP protocol (with TLS)."}}

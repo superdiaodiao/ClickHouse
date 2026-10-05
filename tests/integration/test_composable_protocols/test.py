@@ -305,3 +305,31 @@ def test_protocol_metrics():
         retry_count=30,
         sleep_time=1,
     )
+
+
+def test_protocol_metrics_sum_listeners_of_one_protocol():
+    """Listeners of the same protocol are summed rather than the last one overwriting the
+    others: the `tcp` (9000) and `tcp_endpoint` (9001) listeners both report into `TCPThreads`.
+    """
+    # Each running query holds one handler thread on its listener for its whole duration.
+    long_query = "SELECT sleepEachRow(1) FROM numbers(30) SETTINGS max_block_size = 1"
+    requests = [
+        Client(
+            server.ip_address, port, command=cluster.client_bin_path
+        ).get_query_request(long_query)
+        for port in (9000, 9000, 9001, 9001)
+    ]
+    try:
+        # If one listener overwrote the other, the metric would show at most one listener's
+        # two queries plus the checking query itself. Summing both listeners gives at least four.
+        assert_eq_with_retry(
+            server,
+            "SELECT value >= 4 FROM system.asynchronous_metrics WHERE metric = 'TCPThreads'",
+            "1\n",
+            retry_count=25,
+            sleep_time=1,
+        )
+    finally:
+        server.query("KILL QUERY WHERE query LIKE 'SELECT sleepEachRow(1)%' SYNC")
+        for request in requests:
+            request.get_answer_and_error()
